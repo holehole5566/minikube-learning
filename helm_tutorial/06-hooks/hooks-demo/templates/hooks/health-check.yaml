@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "hooks-demo.fullname" . }}-health-check"
+  labels:
+    {{- include "hooks-demo.labels" . | nindent 4 }}
+  annotations:
+    # Run after install and upgrade complete
+    "helm.sh/hook": post-install,post-upgrade
+    # Execute after migration (weight 2)
+    "helm.sh/hook-weight": "2"
+    # Delete after successful completion
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+      name: "{{ include "hooks-demo.fullname" . }}-health-check"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: health-check
+        image: alpine:3.16
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Starting health check..."
+          echo "Checking application: {{ include "hooks-demo.fullname" . }}"
+          
+          # Simulate health checks
+          echo "1. Checking database connectivity..."
+          sleep 2
+          echo "   ✓ Database connection: OK"
+          
+          echo "2. Checking application endpoints..."
+          sleep 2
+          echo "   ✓ /health endpoint: OK"
+          echo "   ✓ /api/status endpoint: OK"
+          
+          echo "3. Checking external dependencies..."
+          sleep 2
+          echo "   ✓ Redis connection: OK"
+          echo "   ✓ External API: OK"
+          
+          echo "4. Running smoke tests..."
+          sleep 3
+          echo "   ✓ User registration: OK"
+          echo "   ✓ Authentication: OK"
+          echo "   ✓ Data retrieval: OK"
+          
+          echo "Health check completed successfully!"
+          echo "Application is ready to serve traffic."

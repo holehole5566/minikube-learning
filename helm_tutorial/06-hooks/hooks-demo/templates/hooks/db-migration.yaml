@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "hooks-demo.fullname" . }}-db-migration"
+  labels:
+    {{- include "hooks-demo.labels" . | nindent 4 }}
+  annotations:
+    # Run after install and before upgrade
+    "helm.sh/hook": post-install,pre-upgrade
+    # Execute after database is ready (weight 1)
+    "helm.sh/hook-weight": "1"
+    # Delete previous migration job before creating new one
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  template:
+    metadata:
+      name: "{{ include "hooks-demo.fullname" . }}-db-migration"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: db-migration
+        image: alpine:3.16
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Starting database migration..."
+          echo "Connecting to database: $DB_HOST:$DB_PORT"
+          echo "Database: $DB_NAME"
+          
+          # Simulate migration steps
+          echo "Step 1: Creating tables..."
+          sleep 2
+          echo "Step 2: Adding indexes..."
+          sleep 2
+          echo "Step 3: Seeding initial data..."
+          sleep 2
+          
+          echo "Database migration completed successfully!"
+        env:
+        - name: DB_HOST
+          value: "postgres-service"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "webapp_db"
+        - name: DB_USER
+          value: "webapp_user"

@@ -1,0 +1,11 @@
+# Development environment - use internal dependencies
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "devpassword"
+    database: "webapp_dev"
+
+redis:
+  enabled: true
+  auth:
+    enabled: false

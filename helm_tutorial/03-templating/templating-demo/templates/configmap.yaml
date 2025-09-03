@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "templating-demo.fullname" . }}-config
+  labels:
+    {{- include "templating-demo.labels" . | nindent 4 }}
+data:
+  # String functions
+  app-name: {{ .Values.app.name | upper | quote }}
+  app-version: {{ .Values.app.version | lower }}
+  environment: {{ .Values.app.environment | default "development" | quote }}
+  
+  # Database config with 'with' block
+  {{- with .Values.database }}
+  db-host: {{ .host | quote }}
+  db-port: {{ .port | quote }}
+  db-name: {{ .name | quote }}
+  {{- end }}
+  
+  # Loop through environments list
+  {{- range .Values.environments }}
+  {{ .name }}: {{ .value | quote }}
+  {{- end }}
+  
+  # Loop through config map
+  {{- range $key, $value := .Values.config }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}

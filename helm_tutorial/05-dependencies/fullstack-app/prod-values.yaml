@@ -1,0 +1,13 @@
+# Production environment - use external managed services
+postgresql:
+  enabled: false
+
+redis:
+  enabled: false
+
+# External database configuration
+externalDatabase:
+  host: "prod-postgres.company.com"
+  port: 5432
+  database: "webapp_prod"
+  existingSecret: "prod-db-credentials"

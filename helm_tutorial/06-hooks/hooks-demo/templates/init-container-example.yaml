@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ include "hooks-demo.fullname" . }}-with-init"
+  labels:
+    {{- include "hooks-demo.labels" . | nindent 4 }}
+    component: init-example
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "hooks-demo.selectorLabels" . | nindent 6 }}
+      component: init-example
+  template:
+    metadata:
+      labels:
+        {{- include "hooks-demo.selectorLabels" . | nindent 8 }}
+        component: init-example
+    spec:
+      # Init containers run before main containers (every pod start)
+      initContainers:
+      - name: wait-for-database
+        image: busybox:1.35
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Waiting for database to be ready..."
+          until nc -z postgres-service 5432; do
+            echo "Database not ready, waiting..."
+            sleep 2
+          done
+          echo "Database is ready!"
+      
+      - name: check-migrations
+        image: alpine:3.16
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Checking if migrations are complete..."
+          # Simulate migration check
+          sleep 3
+          echo "Migrations verified!"
+      
+      containers:
+      - name: app
+        image: "nginx:1.21"
+        ports:
+        - containerPort: 80
+        env:
+        - name: DB_HOST
+          value: "postgres-service"

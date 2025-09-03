@@ -1,0 +1,132 @@
+# Global configuration
+global:
+  environment: development
+  domain: ecommerce.local
+
+# Application images
+images:
+  frontend:
+    repository: nginx
+    tag: "1.21"
+  userService:
+    repository: node
+    tag: "16-alpine"
+  orderService:
+    repository: python
+    tag: "3.9-slim"
+
+# Scaling configuration
+scaling:
+  frontend:
+    replicas: 2
+  userService:
+    replicas: 2
+  orderService:
+    replicas: 2
+
+# Resource limits
+resources:
+  frontend:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  userService:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  orderService:
+    requests:
+      cpu: 150m
+      memory: 200Mi
+    limits:
+      cpu: 800m
+      memory: 800Mi
+
+# Database configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "ecommerce123"
+    database: "ecommerce_db"
+    username: "ecommerce_user"
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+
+# External database (when postgresql.enabled=false)
+externalDatabase:
+  host: "prod-postgres.company.com"
+  port: 5432
+  database: "ecommerce_prod"
+  existingSecret: "db-credentials"
+
+# Cache configuration  
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: false
+
+# Service configuration
+service:
+  type: ClusterIP
+  ports:
+    frontend: 80
+    userService: 3000
+    orderService: 5000
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: ecommerce.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+        - path: /api/users
+          pathType: Prefix  
+          service: user-service
+        - path: /api/orders
+          pathType: Prefix
+          service: order-service
+  tls: []
+
+# Standard configurations
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes: []
+volumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""

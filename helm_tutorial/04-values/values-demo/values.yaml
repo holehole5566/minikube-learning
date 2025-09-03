@@ -1,0 +1,99 @@
+# Application configuration
+app:
+  name: webapp
+  version: "1.0.0"
+  environment: development
+
+# Image configuration
+image:
+  repository: nginx
+  tag: "1.21"
+  pullPolicy: IfNotPresent
+
+# Deployment configuration
+replicaCount: 1
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Database configuration
+database:
+  host: localhost
+  port: 5432
+  name: webapp_db
+  username: webapp_user
+
+# Redis configuration
+redis:
+  enabled: false
+  host: localhost
+  port: 6379
+
+# Environment variables
+env:
+  - name: LOG_LEVEL
+    value: info
+  - name: DEBUG
+    value: "false"
+
+# Service Account
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+# Pod configuration
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
+
+# Autoscaling
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+# Additional configurations
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+volumes: []
+volumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Probes
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http

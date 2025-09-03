@@ -1,0 +1,17 @@
+replicaCount: 2
+
+image:
+  repository: nginx
+  tag: "alpine"
+
+service:
+  type: LoadBalancer
+  port: 80
+
+ingress:
+  enabled: true
+  hosts:
+    - host: myapp.local
+      paths:
+        - path: /
+          pathType: Prefix

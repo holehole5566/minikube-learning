@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "hooks-demo.fullname" . }}-backup-{{ .Release.Revision }}"
+  labels:
+    {{- include "hooks-demo.labels" . | nindent 4 }}
+  annotations:
+    # Run before upgrade starts
+    "helm.sh/hook": pre-upgrade
+    # Execute first (before migration)
+    "helm.sh/hook-weight": "-1"
+    # Keep backup job after success for audit
+    "helm.sh/hook-delete-policy": hook-failed
+spec:
+  template:
+    metadata:
+      name: "{{ include "hooks-demo.fullname" . }}-backup"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: backup
+        image: alpine:3.16
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Starting database backup..."
+          echo "Backup target: $DB_HOST:$DB_PORT"
+          echo "Release revision: {{ .Release.Revision }}"
+          
+          # Simulate backup process
+          BACKUP_FILE="backup-$(date +%Y%m%d-%H%M%S)-rev{{ .Release.Revision }}.sql"
+          echo "Creating backup file: $BACKUP_FILE"
+          
+          echo "Dumping database schema..."
+          sleep 3
+          echo "Dumping database data..."
+          sleep 3
+          echo "Compressing backup..."
+          sleep 2
+          
+          echo "Backup completed: $BACKUP_FILE"
+          echo "Backup size: 1.2GB (simulated)"
+        env:
+        - name: DB_HOST
+          value: "postgres-service"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "webapp_db"

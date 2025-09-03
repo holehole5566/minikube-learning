@@ -1,0 +1,63 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "ecommerce.fullname" . }}-db-migration-{{ .Release.Revision }}"
+  labels:
+    {{- include "ecommerce.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,pre-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  template:
+    metadata:
+      name: "{{ include "ecommerce.fullname" . }}-db-migration"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: db-migration
+        image: "{{ .Values.images.userService.repository }}:{{ .Values.images.userService.tag }}"
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Starting database migration for e-commerce..."
+          echo "Environment: {{ .Values.global.environment }}"
+          echo "Release: {{ .Release.Name }} (revision {{ .Release.Revision }})"
+          
+          # Simulate migration steps
+          echo "Creating users table..."
+          sleep 2
+          echo "Creating orders table..."
+          sleep 2
+          echo "Creating products table..."
+          sleep 2
+          echo "Adding indexes..."
+          sleep 2
+          echo "Seeding initial data..."
+          sleep 3
+          
+          echo "Database migration completed successfully!"
+        env:
+        - name: DB_HOST
+          {{- if .Values.postgresql.enabled }}
+          value: {{ include "ecommerce.fullname" . }}-postgresql
+          {{- else }}
+          value: {{ .Values.externalDatabase.host }}
+          {{- end }}
+        - name: DB_NAME
+          {{- if .Values.postgresql.enabled }}
+          value: {{ .Values.postgresql.auth.database }}
+          {{- else }}
+          value: {{ .Values.externalDatabase.database }}
+          {{- end }}
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              {{- if .Values.postgresql.enabled }}
+              name: {{ include "ecommerce.fullname" . }}-postgresql
+              key: postgres-password
+              {{- else }}
+              name: {{ .Values.externalDatabase.existingSecret }}
+              key: password
+              {{- end }}
