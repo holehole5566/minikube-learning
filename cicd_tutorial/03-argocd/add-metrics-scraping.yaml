@@ -1,0 +1,59 @@
+# Add Tekton and ArgoCD metrics to Prometheus
+
+# Method 1: ServiceMonitor (if you have Prometheus Operator)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: tekton-metrics
+  namespace: observability
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: tekton-pipelines
+  endpoints:
+  - port: http-metrics
+    path: /metrics
+  namespaceSelector:
+    matchNames:
+    - tekton-pipelines
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: argocd-metrics
+  namespace: observability
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-metrics
+  endpoints:
+  - port: metrics
+  namespaceSelector:
+    matchNames:
+    - argocd
+---
+# Method 2: Update Prometheus ConfigMap (what you have)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: observability
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+    
+    scrape_configs:
+    # Your existing configs...
+    
+    # Add Tekton metrics
+    - job_name: 'tekton-pipelines'
+      static_configs:
+      - targets: ['tekton-pipelines-controller.tekton-pipelines.svc.cluster.local:9090']
+      - targets: ['tekton-events-controller.tekton-pipelines.svc.cluster.local:9090']
+    
+    # Add ArgoCD metrics  
+    - job_name: 'argocd'
+      static_configs:
+      - targets: ['argocd-metrics.argocd.svc.cluster.local:8082']
+      - targets: ['argocd-server-metrics.argocd.svc.cluster.local:8083']
