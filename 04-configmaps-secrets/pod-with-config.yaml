@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: config-pod
+spec:
+  containers:
+  - name: app
+    image: busybox
+    command: ['sh', '-c', 'echo "DB: $DATABASE_URL, Debug: $DEBUG_MODE, User: $USERNAME" && sleep 3600']
+    env:
+    - name: DATABASE_URL
+      valueFrom:
+        configMapKeyRef:
+          name: app-config
+          key: database_url
+    - name: DEBUG_MODE
+      valueFrom:
+        configMapKeyRef:
+          name: app-config
+          key: debug_mode
+    - name: USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: app-secret
+          key: username
